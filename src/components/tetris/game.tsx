@@ -14,9 +14,12 @@ import {
   type ScoreLines,
 } from "~/utils/tetris/types";
 import { useInterval } from "usehooks-ts";
-import { type HTMLAttributes, useCallback, useEffect } from "react";
+import { type HTMLAttributes, useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTetrisContext } from "./context";
+import Save from "../save";
+import { api } from "~/utils/api";
+import { toast } from "sonner";
 
 interface ScoreBoardProps {
   score: number;
@@ -28,16 +31,16 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ score, lines, shape }) => {
   return (
     <div className="flex flex-1 gap-2">
       <div className="flex flex-1 flex-col items-end justify-end border p-2">
-        <h1 className="w-full flex-1 font-medium">Score</h1>
+        <h1 className="section-label w-full">Score</h1>
         <p className="text-5xl text-destructive">{score}</p>
       </div>
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-center justify-between border p-2">
-          <h1 className="font-medium">Lines</h1>
+          <h1 className="section-label">Lines</h1>
           <p className="text-sm">{lines}</p>
         </div>
         <div className="relative flex flex-1 flex-col items-end justify-end overflow-hidden border p-2">
-          <h1 className="w-full flex-1 font-medium">Next Up</h1>
+          <h1 className="section-label w-full">Next Up</h1>
           {!!shape && (
             <RenderTetromino
               className="translate-x-1/4 translate-y-1/4 scale-50"
@@ -488,7 +491,7 @@ const RenderTetrominoes: React.FC = () => {
         setIsSuperSpeed(false);
       }
     };
-
+    if (gameOver) return;
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
     return () => {
@@ -497,7 +500,7 @@ const RenderTetrominoes: React.FC = () => {
     };
   }, [
     calcBlock,
-    calcBlock,
+    gameOver,
     heightMap,
     setIsSuperSpeed,
     setTetromino,
@@ -540,6 +543,32 @@ const RenderTetrominoes: React.FC = () => {
 };
 
 const Board: React.FC = () => {
+  const { gameOver, score } = useTetrisContext();
+  const t3 = api.useUtils();
+  const { mutateAsync: save, isLoading: saving } = api.tetris.save.useMutation({
+    onSuccess: async () => {
+      await t3.tetris.invalidate();
+      toast.success("Saved score to your profile.");
+    },
+    onError: () =>
+      toast.error("Failed to save score.", {
+        action: {
+          label: "Retry",
+          onClick: () => {
+            toast.loading("Saving...");
+            void save({ score });
+          },
+        },
+      }),
+  });
+  const [askSave, setAskSave] = useState(false);
+
+  useEffect(() => {
+    if (gameOver) {
+      setAskSave(true);
+    }
+  }, [gameOver]);
+
   return (
     <>
       <div
@@ -547,7 +576,7 @@ const Board: React.FC = () => {
           gridTemplateColumns: `repeat(${defaultCellCols}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${defaultCellRows}, minmax(0, 1fr))`,
         }}
-        className="grid border"
+        className="relative grid border"
       >
         {Array.from({ length: 200 }).map((_, index) => (
           <div
@@ -562,6 +591,19 @@ const Board: React.FC = () => {
             )}
           />
         ))}
+        {askSave && (
+          <Save
+            onSave={async () => {
+              await save({ score });
+              setAskSave(false);
+            }}
+            message={saving ? "Save in progress..." : undefined}
+            saving={saving}
+            automaticSave
+            onCancel={() => setAskSave(false)}
+            className="absolute z-10 w-5/6 self-center justify-self-center"
+          />
+        )}
       </div>
     </>
   );

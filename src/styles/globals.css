@@ -80,7 +80,7 @@
     @apply text-xs leading-7 sm:text-sm [&:not(:first-child)]:mt-6;
   }
   .h1 {
-    @apply scroll-m-20 text-4xl font-medium tracking-tight lg:text-5xl;
+    @apply mb-8 scroll-m-20 text-4xl font-medium tracking-tight lg:text-5xl;
   }
   .h2 {
     @apply mt-10 scroll-m-20 border-b pb-2 text-3xl font-medium tracking-tight transition-colors first:mt-0;
@@ -90,6 +90,9 @@
   }
   .h4 {
     @apply scroll-m-20 font-medium tracking-tight sm:text-lg lg:text-xl;
+  }
+  .section-label {
+    @apply flex-1 text-base font-medium;
   }
 }
 

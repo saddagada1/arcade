@@ -4,9 +4,33 @@ import { useTetrisContext } from "~/components/tetris/context";
 import Game from "~/components/tetris/game";
 import { Button } from "~/components/ui/button";
 import { controls } from "~/utils/tetris/constants";
-import { cn } from "~/utils/helpers";
+import { cn, getMonth } from "~/utils/helpers";
+import { api } from "~/utils/api";
+import Loading from "~/components/loading";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import NoContent from "~/components/noContent";
 
 const Tetris = () => {
+  const { data: session, status: sessionStatus } = useSession();
+  const { data: scores, isLoading: fetchingScores } =
+    api.tetris.getHighScores.useQuery(
+      { take: 10 },
+      {
+        onError: () =>
+          toast.error(
+            "Failed to fetch high scores. Please refresh the page and try again.",
+          ),
+      },
+    );
+  const { data: userScores, isLoading: fetchingUserScores } =
+    api.tetris.getUserHighScores.useQuery(undefined, {
+      enabled: sessionStatus === "authenticated",
+      onError: () =>
+        toast.error(
+          "Failed to fetch your high scores. Please refresh the page and try again.",
+        ),
+    });
   const {
     gameStarted,
     gameOver,
@@ -18,6 +42,7 @@ const Tetris = () => {
     startGame,
     replay,
   } = useTetrisContext();
+
   return (
     <>
       <Head>
@@ -27,8 +52,8 @@ const Tetris = () => {
         <Game />
         <div className="grid flex-1 grid-cols-6 grid-rows-6 gap-2">
           <div className="col-span-4 row-span-4 flex flex-col border p-2 text-sm">
-            <h1 className="flex-1 text-base font-medium">Summary</h1>
-            <h1 className="h1 mb-8">Tetris</h1>
+            <h1 className="section-label">Summary</h1>
+            <h1 className="h1">Tetris</h1>
             <p>
               Tetris is a classic video game that was created by Russian game
               designer Alexey Pajitnov in 1984. The game&apos;s name is derived
@@ -48,11 +73,88 @@ const Tetris = () => {
               gaming.
             </p>
           </div>
-          <div className="col-span-2 row-span-5 flex flex-col border p-2 text-sm">
-            <h1 className="flex-1 text-base font-medium">High Scores</h1>
+          <div className="col-span-2 row-span-5 flex flex-col gap-8 border p-2 text-sm">
+            <h1 className="section-label flex-none">High Scores</h1>
+            {fetchingScores ? (
+              <Loading />
+            ) : (
+              <>
+                {!!session && (
+                  <div className="grid flex-1 grid-cols-2">
+                    <h1 className="text-destructive">
+                      {session.user.username}
+                    </h1>
+                    {fetchingUserScores ? (
+                      <Loading />
+                    ) : (
+                      <>
+                        {userScores && userScores.scores.length > 0 ? (
+                          <ul>
+                            <li>
+                              <p className="text-base font-medium">
+                                {userScores.highScore}
+                              </p>
+                            </li>
+                            {userScores.scores
+                              .slice()
+                              .reverse()
+                              .slice(0, 9)
+                              .map((score, index) => (
+                                <li key={index}>
+                                  <p>{score}</p>
+                                </li>
+                              ))}
+                          </ul>
+                        ) : (
+                          <NoContent>
+                            You haven&apos;t played any games yet.
+                          </NoContent>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
+                <div className="grid flex-1 grid-cols-2">
+                  <h1 className="text-destructive">{getMonth()}</h1>
+                  {scores && scores.monthly.length > 0 ? (
+                    <ul>
+                      {scores.monthly.map((score, index) => (
+                        <li key={index} className="flex gap-2">
+                          <p>{score.user.username}</p>
+                          <p className="text-base font-medium">
+                            {score.highScore}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <NoContent>No games have been played this month.</NoContent>
+                  )}
+                </div>
+                <div className="grid flex-1 grid-cols-2">
+                  <h1 className="text-destructive">All Time</h1>
+                  {scores && scores.allTime.length > 0 ? (
+                    <ul>
+                      {scores.allTime.map((score, index) => (
+                        <li key={index} className="flex gap-2">
+                          <p>{score.user.username}</p>
+                          <p className="text-base font-medium">
+                            {score.highScore}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <NoContent>
+                      No games have been played. Does this game suck?!
+                    </NoContent>
+                  )}
+                </div>
+              </>
+            )}
           </div>
           <div className="col-span-4 flex flex-col border p-2 text-sm">
-            <h1 className="flex-1 text-base font-medium">Controls</h1>
+            <h1 className="section-label">Controls</h1>
             <div className="flex items-end justify-between gap-2">
               <div className="flex gap-2">
                 <Button
