@@ -4,12 +4,15 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import Layout from "~/components/layout";
+import Contexts from "~/components/contexts";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <Contexts>
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
+    </Contexts>
   );
 };
 

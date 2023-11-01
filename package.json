@@ -1,5 +1,5 @@
 {
-  "name": "tetris",
+  "name": "arcade",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,14 +13,17 @@
   },
   "dependencies": {
     "@prisma/client": "^5.1.1",
+    "@radix-ui/react-slot": "^1.0.2",
     "@t3-oss/env-nextjs": "^0.7.0",
     "@tanstack/react-query": "^4.32.6",
     "@trpc/client": "^10.37.1",
     "@trpc/next": "^10.37.1",
     "@trpc/react-query": "^10.37.1",
     "@trpc/server": "^10.37.1",
+    "boring-avatars": "^1.10.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "framer-motion": "^10.16.4",
     "lucide-react": "^0.290.0",
     "next": "^13.5.4",
     "react": "18.2.0",

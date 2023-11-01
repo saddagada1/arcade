@@ -22,3 +22,11 @@ export interface Tetromino {
 export interface TetrominoVariant {
   shape: TetrominoShape[];
 }
+
+export enum ScoreLines {
+  "zero" = 0,
+  "one" = 1,
+  "two" = 2,
+  "three" = 3,
+  "four" = 4,
+}

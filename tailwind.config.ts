@@ -17,7 +17,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)"],
+        sans: ["Neue Montreal"],
         mono: ["var(--font-mono)"],
       },
       colors: {
@@ -69,10 +69,15 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        blink: {
+          "0%, 100%": { color: "hsl(var(--foreground))" },
+          "50%": { color: "hsl(var(--destructive))" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        blink: "blink 1s steps(1) infinite",
       },
     },
   },

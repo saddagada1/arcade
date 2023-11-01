@@ -1,11 +1,13 @@
-import PlayArea from "~/components/playArea";
+import type { NextPage } from "next";
+import Head from "next/head";
 
-const Index = () => {
+const Index: NextPage = ({}) => {
   return (
     <>
-      <main className="flex h-full items-center justify-center">
-        <PlayArea />
-      </main>
+      <Head>
+        <title>Arcade</title>
+      </Head>
+      view all
     </>
   );
 };

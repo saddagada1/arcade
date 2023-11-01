@@ -2,74 +2,164 @@ import {
   defaultCellCols,
   defaultCellRows,
   defaultCellSize,
-  defaultFallSpeed,
+  scores,
+  superSpeed,
   tetrominoVariants,
   tetrominoes,
-} from "~/utils/constants";
-import Board from "./board";
-import { buildHeightMap, rand } from "~/utils/helpers";
-import { type TetrominoShapes, type Tetromino } from "~/utils/types";
+} from "~/utils/tetris/constants";
+import { cn, rand } from "~/utils/helpers";
+import {
+  type TetrominoShapes,
+  type Tetromino,
+  type ScoreLines,
+} from "~/utils/tetris/types";
 import { useInterval } from "usehooks-ts";
-import { useCallback, useEffect, useState } from "react";
+import { type HTMLAttributes, useCallback, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useTetrisContext } from "./context";
 
-interface RenderTetrominoProps {
+interface ScoreBoardProps {
+  score: number;
+  lines: number;
+  shape?: Tetromino;
+}
+
+const ScoreBoard: React.FC<ScoreBoardProps> = ({ score, lines, shape }) => {
+  return (
+    <div className="flex flex-1 gap-2">
+      <div className="flex flex-1 flex-col items-end justify-end border p-2">
+        <h1 className="w-full flex-1 font-medium">Score</h1>
+        <p className="text-5xl text-destructive">{score}</p>
+      </div>
+      <div className="flex flex-1 flex-col gap-2">
+        <div className="flex items-center justify-between border p-2">
+          <h1 className="font-medium">Lines</h1>
+          <p className="text-sm">{lines}</p>
+        </div>
+        <div className="relative flex flex-1 flex-col items-end justify-end overflow-hidden border p-2">
+          <h1 className="w-full flex-1 font-medium">Next Up</h1>
+          {!!shape && (
+            <RenderTetromino
+              className="translate-x-1/4 translate-y-1/4 scale-50"
+              tetromino={shape}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface RenderTetrominoProps extends HTMLAttributes<HTMLDivElement> {
   tetromino: Tetromino;
 }
 
-const RenderTetromino: React.FC<RenderTetrominoProps> = ({ tetromino }) => {
+const RenderTetromino: React.FC<RenderTetrominoProps> = ({
+  tetromino,
+  ...props
+}) => {
+  const { className, style, ...rest } = props;
+
+  const calcXMax = (tetromino: Tetromino) => {
+    return (
+      (tetromino.shape.reduce((curr, { x }) => (x > curr ? x : curr), 0) + 1) *
+      defaultCellSize
+    );
+  };
+
+  const calcYMax = (tetromino: Tetromino) => {
+    return (
+      (tetromino.shape.reduce((curr, { y }) => (y > curr ? y : curr), 0) + 1) *
+      defaultCellSize
+    );
+  };
+
   return (
-    <div className="absolute top-0">
-      {tetromino.shape.map(({ x, y }, index) => (
-        <div
-          key={index}
-          style={{
-            transform: `translateX(${x * defaultCellSize}px) translateY(${
-              y * defaultCellSize
-            }px)`,
-            width: defaultCellSize,
-            height: defaultCellSize,
-            backgroundColor: tetromino.colour,
-          }}
-          className="absolute border"
-        />
-      ))}
+    <div
+      {...rest}
+      style={{
+        width: calcXMax(tetromino),
+        height: calcYMax(tetromino),
+        ...style,
+      }}
+      className={cn("absolute", className)}
+    >
+      <AnimatePresence>
+        {tetromino.shape.map(({ x, y }, index) => (
+          <motion.div
+            initial={{
+              translateX: x * defaultCellSize,
+              translateY: y * defaultCellSize,
+            }}
+            animate={{
+              translateX: x * defaultCellSize,
+              translateY: y * defaultCellSize,
+            }}
+            exit={{ opacity: 0 }}
+            key={index}
+            style={{
+              width: defaultCellSize,
+              height: defaultCellSize,
+              backgroundColor: tetromino.colour + "CC",
+              borderColor: tetromino.colour,
+            }}
+            className="absolute border"
+          />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
 
 const RenderTetrominoes: React.FC = () => {
-  const [fallSpeed, setFallSpeed] = useState(defaultFallSpeed);
-  const [xOffset, setXOffset] = useState(0);
-  const [yOffset, setYOffset] = useState(0);
-  const [hasCollision, setHasCollision] = useState(false);
-  const [tetrominoShape, setTetrominoShape] = useState(
-    rand(1, 7) as TetrominoShapes,
-  );
-  const [tetromino, setTetromino] = useState(tetrominoes[tetrominoShape]);
-  const [placed, setPlaced] = useState<Tetromino[]>([]);
-  const [heightMap, setHeightMap] = useState(
-    buildHeightMap(defaultCellCols, defaultCellRows),
-  );
-  const [gameOver, setGameOver] = useState(false);
+  const {
+    gameStarted,
+    gameOver,
+    setGameOver,
+    isPlaying,
+    setIsPlaying,
+    fallSpeed,
+    xOffset,
+    setXOffset,
+    yOffset,
+    setYOffset,
+    tetrominoShape,
+    setTetrominoShape,
+    tetromino,
+    setTetromino,
+    futureShape,
+    setFutureShape,
+    placed,
+    setPlaced,
+    heightMap,
+    setHeightMap,
+    isSuperSpeed,
+    setIsSuperSpeed,
+    score,
+    setScore,
+    level,
+    lines,
+    setLines,
+  } = useTetrisContext();
 
-  const calcBlockCol = useCallback(
-    (x: number, mod = 0) => {
-      return (x + (xOffset + mod) * defaultCellSize) / defaultCellSize;
+  const calcScore = useCallback(
+    (lines: ScoreLines) => {
+      return scores[lines] * (level + 1);
     },
-    [xOffset],
+    [level],
   );
 
-  const calcBlockRow = useCallback(
-    (y: number, mod = 0) => {
-      return (y + (yOffset + mod) * defaultCellSize) / defaultCellSize;
+  const calcBlock = useCallback(
+    (coordinate: number, offset: number, mod = 0) => {
+      return coordinate + (offset + mod);
     },
-    [yOffset],
+    [],
   );
 
   const updateHeightMap = useCallback(() => {
     const coordinates = tetromino.shape.map(({ x, y }) => {
-      const blockCol = calcBlockCol(x);
-      const blockRow = calcBlockRow(y);
+      const blockCol = calcBlock(x, xOffset);
+      const blockRow = calcBlock(y, yOffset);
       return { x: blockCol, y: blockRow };
     });
     const update = coordinates.reduce(
@@ -95,18 +185,18 @@ const RenderTetrominoes: React.FC = () => {
       {} as typeof heightMap,
     );
     return update;
-  }, [calcBlockCol, calcBlockRow, heightMap, tetromino]);
+  }, [calcBlock, heightMap, tetromino, xOffset, yOffset]);
 
   const updatePlaced = useCallback(() => {
     const update: Tetromino["shape"] = [];
     for (const block of tetromino.shape) {
       update.push({
-        x: calcBlockCol(block.x),
-        y: calcBlockRow(block.y),
+        x: calcBlock(block.x, xOffset),
+        y: calcBlock(block.y, yOffset),
       });
     }
     return [{ ...tetromino, shape: update }];
-  }, [calcBlockCol, calcBlockRow, tetromino]);
+  }, [calcBlock, tetromino, xOffset, yOffset]);
 
   const clearFilledRows = useCallback(() => {
     const rowArray: number[] = Array.from({ length: defaultCellRows });
@@ -125,7 +215,6 @@ const RenderTetrominoes: React.FC = () => {
       }),
       {} as Record<number, number>,
     );
-    console.log(rowMap);
     const rowsToClear = rowArray.reduce((arr, _, index) => {
       const sum = rowMap[index];
       if (sum && sum === defaultCellCols) {
@@ -134,6 +223,8 @@ const RenderTetrominoes: React.FC = () => {
       return arr;
     }, [] as number[]);
     let placedUpdate = [...placed, ...updatePlaced()];
+    setXOffset(0);
+    setYOffset(0);
     for (const row of rowsToClear) {
       placedUpdate = placedUpdate.map((t) => ({
         ...t,
@@ -150,7 +241,7 @@ const RenderTetrominoes: React.FC = () => {
             if (i <= row) {
               return {
                 ...o,
-                [i]: col[i - rowsToClear.length] ?? 0,
+                [i]: col[i - 1] ?? 0,
               };
             }
             return { ...o, [i]: col[i] ?? 0 };
@@ -158,11 +249,31 @@ const RenderTetrominoes: React.FC = () => {
         }),
         heightMapUpdate,
       );
-      console.log(heightMapUpdate);
     }
+    setScore((curr) => curr + calcScore(rowsToClear.length as ScoreLines));
+    setLines((curr) => curr + rowsToClear.length);
     setPlaced(placedUpdate);
     setHeightMap(heightMapUpdate);
-  }, [heightMap, placed, updateHeightMap, updatePlaced]);
+    setTetrominoShape(futureShape);
+    setTetromino(tetrominoes[futureShape]);
+    setFutureShape(rand(1, 7) as TetrominoShapes);
+  }, [
+    calcScore,
+    futureShape,
+    heightMap,
+    placed,
+    setFutureShape,
+    setHeightMap,
+    setLines,
+    setPlaced,
+    setScore,
+    setTetromino,
+    setTetrominoShape,
+    setXOffset,
+    setYOffset,
+    updateHeightMap,
+    updatePlaced,
+  ]);
 
   const yWillCollide = useCallback(
     ({
@@ -176,24 +287,28 @@ const RenderTetrominoes: React.FC = () => {
       dir: "up" | "down";
       present?: boolean;
     }) => {
-      const blockCol = calcBlockCol(x);
-      const blockRow = calcBlockRow(y, present ? 0 : dir === "down" ? 1 : -1);
+      const blockCol = calcBlock(x, xOffset);
+      const blockRow = calcBlock(
+        y,
+        yOffset,
+        present ? 0 : dir === "down" ? 1 : -1,
+      );
       const col = heightMap[blockCol];
       if (col === undefined) return false;
       return col[blockRow] === 1;
     },
-    [calcBlockCol, calcBlockRow, heightMap],
+    [calcBlock, heightMap, xOffset, yOffset],
   );
 
   const yOutOfBounds = useCallback(
     (y: number, dir: "up" | "down", present?: boolean) => {
       if (dir === "down") {
-        return calcBlockRow(y, present ? 0 : 1) >= defaultCellRows;
+        return calcBlock(y, yOffset, present ? 0 : 1) >= defaultCellRows;
       } else {
-        return calcBlockRow(y, present ? 0 : -1) < 0;
+        return calcBlock(y, yOffset, present ? 0 : -1) < 0;
       }
     },
-    [calcBlockRow],
+    [calcBlock, yOffset],
   );
 
   const xWillCollide = useCallback(
@@ -208,35 +323,29 @@ const RenderTetrominoes: React.FC = () => {
       dir: "left" | "right";
       present?: boolean;
     }) => {
-      const blockCol = calcBlockCol(x, present ? 0 : dir === "right" ? 1 : -1);
-      const blockRow = calcBlockRow(y);
+      const blockCol = calcBlock(
+        x,
+        xOffset,
+        present ? 0 : dir === "right" ? 1 : -1,
+      );
+      const blockRow = calcBlock(y, yOffset);
       const col = heightMap[blockCol];
       if (col === undefined) return false;
       return col[blockRow] === 1;
     },
-    [calcBlockCol, calcBlockRow, heightMap],
+    [calcBlock, heightMap, xOffset, yOffset],
   );
 
   const xOutOfBounds = useCallback(
     (x: number, dir: "left" | "right", present?: boolean) => {
       if (dir === "right") {
-        return calcBlockCol(x, present ? 0 : 1) >= defaultCellCols;
+        return calcBlock(x, xOffset, present ? 0 : 1) >= defaultCellCols;
       } else {
-        return calcBlockCol(x, present ? 0 : -1) < 0;
+        return calcBlock(x, xOffset, present ? 0 : -1) < 0;
       }
     },
-    [calcBlockCol],
+    [calcBlock, xOffset],
   );
-
-  useEffect(() => {
-    const newShape = rand(1, 7) as TetrominoShapes;
-    setTetrominoShape(newShape);
-    setTetromino(tetrominoes[newShape]);
-    setXOffset(0);
-    setYOffset(0);
-    setHasCollision(false);
-  }, [placed]);
-
   useInterval(
     () => {
       let collision = false;
@@ -251,18 +360,19 @@ const RenderTetrominoes: React.FC = () => {
       }
       if (!collision) {
         setYOffset(yOffset + 1);
+        if (isSuperSpeed) {
+          setScore((curr) => curr + 1);
+        }
       } else {
         if (yOffset > 0) {
           clearFilledRows();
-          setHasCollision(true);
         } else {
-          setHasCollision(true);
           setGameOver(true);
-          alert("game over");
+          setIsPlaying(false);
         }
       }
     },
-    !hasCollision ? fallSpeed : null,
+    gameOver || !isPlaying ? null : isSuperSpeed ? superSpeed : fallSpeed,
   );
 
   useEffect(() => {
@@ -302,14 +412,14 @@ const RenderTetrominoes: React.FC = () => {
       for (const block of shape) {
         if (
           yOutOfBounds(block.y, "down", true) ||
-          yOutOfBounds(block.y, "up", true) ||
           yWillCollide({
             x: block.x,
             y: block.y,
             dir: "down",
             present: true,
-          }) ||
-          yWillCollide({ x: block.x, y: block.y, dir: "up", present: true })
+          })
+          //   || yOutOfBounds(block.y, "up", true) || ## enable if you want to restrict top overflow
+          //   yWillCollide({ x: block.x, y: block.y, dir: "up", present: true })
         ) {
           if (block.y > height) {
             height = block.y;
@@ -361,7 +471,7 @@ const RenderTetrominoes: React.FC = () => {
           setXOffset(xOffset + 1);
         }
       } else if (ev.key === "ArrowDown") {
-        setFallSpeed(defaultFallSpeed / 4);
+        setIsSuperSpeed(true);
       } else if (ev.key === "ArrowUp") {
         if (ev.repeat) return;
         const variant = tetrominoVariants[tetrominoShape][tetromino.variant];
@@ -375,7 +485,7 @@ const RenderTetrominoes: React.FC = () => {
 
     const handleKeyUp = (ev: KeyboardEvent) => {
       if (ev.key === "ArrowDown") {
-        setFallSpeed(defaultFallSpeed);
+        setIsSuperSpeed(false);
       }
     };
 
@@ -386,9 +496,13 @@ const RenderTetrominoes: React.FC = () => {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [
-    calcBlockCol,
-    calcBlockRow,
+    calcBlock,
+    calcBlock,
     heightMap,
+    setIsSuperSpeed,
+    setTetromino,
+    setXOffset,
+    setYOffset,
     tetromino,
     tetrominoShape,
     xOffset,
@@ -399,32 +513,69 @@ const RenderTetrominoes: React.FC = () => {
     yWillCollide,
   ]);
 
+  if (!gameStarted) return <ScoreBoard score={score} lines={lines} />;
+
   return (
     <>
       <RenderTetromino
+        key={tetrominoShape}
         tetromino={{
           ...tetromino,
           shape: tetromino.shape.map(({ x, y }) => ({
-            x: calcBlockCol(x),
-            y: calcBlockRow(y),
+            x: calcBlock(x, xOffset),
+            y: calcBlock(y, yOffset),
           })),
         }}
       />
       {placed.map((placedTetromino, index) => (
         <RenderTetromino key={index} tetromino={placedTetromino} />
       ))}
+      <ScoreBoard
+        score={score}
+        lines={lines}
+        shape={tetrominoes[futureShape]}
+      />
     </>
   );
 };
 
-const PlayArea: React.FC = ({}) => {
+const Board: React.FC = () => {
   return (
     <>
-      <div className="relative">
+      <div
+        style={{
+          gridTemplateColumns: `repeat(${defaultCellCols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${defaultCellRows}, minmax(0, 1fr))`,
+        }}
+        className="grid border"
+      >
+        {Array.from({ length: 200 }).map((_, index) => (
+          <div
+            style={{
+              width: defaultCellSize,
+              height: defaultCellSize,
+            }}
+            key={index}
+            className={cn(
+              index % defaultCellCols !== 0 && "border-l",
+              index >= defaultCellCols && "border-t",
+            )}
+          />
+        ))}
+      </div>
+    </>
+  );
+};
+
+const Game: React.FC<HTMLAttributes<HTMLDivElement>> = ({ ...props }) => {
+  const { className, ...rest } = props;
+  return (
+    <>
+      <div {...rest} className={cn("relative flex flex-col gap-2", className)}>
         <Board />
         <RenderTetrominoes />
       </div>
     </>
   );
 };
-export default PlayArea;
+export default Game;
