@@ -92,7 +92,7 @@
     @apply scroll-m-20 font-medium tracking-tight sm:text-lg lg:text-xl;
   }
   .section-label {
-    @apply flex-1 text-base font-medium;
+    @apply flex-1 text-sm font-medium lg:text-base;
   }
 }
 
@@ -127,7 +127,7 @@
 .marquee {
   width: fit-content;
   white-space: nowrap;
-  animation: marquee 5s linear infinite;
+  animation: marquee 20s linear infinite;
 }
 
 @keyframes marquee {

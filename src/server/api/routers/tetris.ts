@@ -13,7 +13,7 @@ export const tetrisRouter = createTRPCRouter({
       let data = await ctx.prisma.tetris.upsert({
         where: { userId: ctx.session.user.id },
         update: { scores: { push: input.score } },
-        create: { userId: ctx.session.user.id },
+        create: { userId: ctx.session.user.id, scores: [input.score] },
       });
 
       if (input.score > data.highScore) {

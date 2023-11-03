@@ -10,7 +10,6 @@ import { TRPCError } from "@trpc/server";
 import { type DefaultJWT } from "next-auth/jwt";
 import { prisma } from "./db";
 import argon2 from "argon2";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { fakePassword } from "~/utils/constants";
 
 /**

@@ -18,9 +18,17 @@ const MyApp: AppType<{ session: Session | null }> = ({
       <Contexts>
         <Layout>
           <Toaster
-            richColors
+            position="top-right"
             toastOptions={{
-              className: "font-sans",
+              style: {
+                borderRadius: 0,
+                border: "1px",
+                borderStyle: "solid",
+                borderColor: "hsl(var(--border))",
+                fontFamily: "Neue Montreal",
+                backgroundColor: "hsl(var(--background))",
+                color: "hsl(var(--foreground))",
+              },
             }}
           />
           <Component {...pageProps} />

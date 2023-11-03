@@ -6,17 +6,25 @@ import {
   useState,
   useEffect,
 } from "react";
+import { api } from "~/utils/api";
 import { rand } from "~/utils/helpers";
 import {
   defaultCellCols,
   defaultCellRows,
   defaultFallSpeed,
+  highScoresLimit,
   tetrominoes,
 } from "~/utils/tetris/constants";
 import { buildHeightMap } from "~/utils/tetris/helpers";
 import { type Tetromino, type TetrominoShapes } from "~/utils/tetris/types";
 
 export interface TetrisValues {
+  cellSize: number;
+  setCellSize: Dispatch<SetStateAction<number>>;
+  cellCols: number;
+  setCellCols: Dispatch<SetStateAction<number>>;
+  cellRows: number;
+  setCellRows: Dispatch<SetStateAction<number>>;
   gameStarted: boolean;
   setGameStarted: Dispatch<SetStateAction<boolean>>;
   gameOver: boolean;
@@ -53,6 +61,10 @@ export interface TetrisValues {
   setMessage: Dispatch<SetStateAction<string | null>>;
   alert: boolean;
   setAlert: Dispatch<SetStateAction<boolean>>;
+  onFire: boolean;
+  setOnFire: Dispatch<SetStateAction<boolean>>;
+  saved: boolean;
+  setSaved: Dispatch<SetStateAction<boolean>>;
   startGame: () => void;
   replay: () => void;
 }
@@ -64,6 +76,9 @@ interface TetrisProviderProps {
 }
 
 const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
+  const [cellSize, setCellSize] = useState(0);
+  const [cellCols, setCellCols] = useState(defaultCellCols);
+  const [cellRows, setCellRows] = useState(defaultCellRows);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -85,6 +100,9 @@ const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
   const [level, setLevel] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [alert, setAlert] = useState(false);
+  const [onFire, setOnFire] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const t3 = api.useUtils();
 
   const startGame = () => {
     setGameStarted(true);
@@ -112,31 +130,62 @@ const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
   useEffect(() => {
     const update = Math.floor(lines / 10);
     if (update > level) {
-      setAlert(true);
+      if (update > 15) {
+        setOnFire(true);
+      } else {
+        setAlert(true);
+      }
+      setFallSpeed(fallSpeed - 50);
     }
+
     setLevel(update);
-  }, [lines, level]);
+  }, [lines, level, fallSpeed]);
 
   useEffect(() => {
     let clearAlert: NodeJS.Timeout;
-    if (alert) {
-      clearAlert = setTimeout(() => setAlert(false), 5000);
+    if (alert && !gameOver) {
+      clearAlert = setTimeout(() => {
+        setAlert(false);
+        if (message) {
+          setMessage(null);
+        }
+        if (onFire) {
+          setOnFire(false);
+        }
+      }, 5000);
     }
     return () => {
       clearTimeout(clearAlert);
     };
-  }, [alert]);
+  }, [alert, gameOver, message, onFire]);
 
   useEffect(() => {
     if (gameOver) {
-      setMessage("Game Over");
-      setAlert(true);
+      const records = t3.tetris.getHighScores.getData({ take: highScoresLimit })
+        ?.allTime;
+      const highScore = t3.tetris.getUserHighScores.getData()?.highScore;
+      if (records?.every(({ highScore: recordScore }) => score > recordScore)) {
+        setMessage("New All Time Record");
+        setOnFire(true);
+      } else if (highScore && score > highScore) {
+        setMessage("New High Score");
+        setOnFire(true);
+      } else {
+        setMessage("Game Over");
+        setAlert(true);
+      }
     }
-  }, [gameOver]);
+  }, [gameOver, score, t3]);
 
   return (
     <TetrisContext.Provider
       value={{
+        cellSize,
+        setCellSize,
+        cellCols,
+        setCellCols,
+        cellRows,
+        setCellRows,
         gameStarted,
         setGameStarted,
         gameOver,
@@ -171,6 +220,10 @@ const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
         setMessage,
         alert,
         setAlert,
+        onFire,
+        setOnFire,
+        saved,
+        setSaved,
         startGame,
         replay,
       }}

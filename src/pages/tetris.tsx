@@ -1,9 +1,9 @@
-import { VolumeX } from "lucide-react";
+import { Volume2 } from "lucide-react";
 import Head from "next/head";
 import { useTetrisContext } from "~/components/tetris/context";
 import Game from "~/components/tetris/game";
 import { Button } from "~/components/ui/button";
-import { controls } from "~/utils/tetris/constants";
+import { controls, highScoresLimit } from "~/utils/tetris/constants";
 import { cn, getMonth } from "~/utils/helpers";
 import { api } from "~/utils/api";
 import Loading from "~/components/loading";
@@ -15,7 +15,7 @@ const Tetris = () => {
   const { data: session, status: sessionStatus } = useSession();
   const { data: scores, isLoading: fetchingScores } =
     api.tetris.getHighScores.useQuery(
-      { take: 10 },
+      { take: highScoresLimit },
       {
         onError: () =>
           toast.error(
@@ -38,6 +38,8 @@ const Tetris = () => {
     isPlaying,
     level,
     alert,
+    setAlert,
+    onFire,
     message,
     startGame,
     replay,
@@ -48,32 +50,42 @@ const Tetris = () => {
       <Head>
         <title>Tetris</title>
       </Head>
-      <main className="flex w-full gap-2 p-2">
+      <main className="flex w-full flex-col gap-2 lg:flex-row">
         <Game />
-        <div className="grid flex-1 grid-cols-6 grid-rows-6 gap-2">
-          <div className="col-span-4 row-span-4 flex flex-col border p-2 text-sm">
+        <div className="flex flex-1 flex-col-reverse gap-2 lg:grid lg:grid-cols-6 lg:grid-rows-6">
+          <div className="flex flex-col border p-2 text-sm lg:col-span-4 lg:row-span-4">
             <h1 className="section-label">Summary</h1>
             <h1 className="h1">Tetris</h1>
-            <p>
+            <p className="mb-4">
               Tetris is a classic video game that was created by Russian game
               designer Alexey Pajitnov in 1984. The game&apos;s name is derived
               from the Greek word &ldquo;tetra,&rdquo; which means four, and the
               game is all about fitting different-shaped blocks, known as
-              Tetriminos, into a rectangular playing field. The objective of
-              Tetris is simple: to complete horizontal lines of blocks without
-              any gaps. When a line is completed, it disappears, and the player
-              earns points. As the game progresses, the speed at which the
-              Tetriminos fall increases, making it more challenging to fit them
-              together and clear lines. Tetris has become one of the most iconic
-              and enduring video games of all time, known for its addictive
-              gameplay and catchy music. It&apos;s available on a wide range of
-              platforms, from classic arcade machines to modern smartphones and
-              gaming consoles. The game&apos;s simple yet compelling mechanics
-              have made it a beloved and timeless classic in the world of
-              gaming.
+              Tetriminos, into a rectangular playing field.
+            </p>
+            <p className="mb-4">
+              The objective of Tetris is simple: to complete horizontal lines of
+              blocks without any gaps. When a line is completed, it disappears,
+              and the player earns points. As the game progresses, the speed at
+              which the Tetriminos fall increases, making it more challenging to
+              fit them together and clear lines.
+            </p>
+            <p className="mb-4">
+              Tetris has become one of the most iconic and enduring video games
+              of all time, known for its addictive gameplay and catchy music.
+              It&apos;s available on a wide range of platforms, from classic
+              arcade machines to modern smartphones and gaming consoles. The
+              game&apos;s simple yet compelling mechanics have made it a beloved
+              and timeless classic in the world of gaming.
+            </p>
+            <p>
+              This is my attempt at recreating the original version of the game.
+              At the moment there may still be some bugs so apologies in advance
+              if you run into any of those. Enjoy and see if you can beat my
+              high score.
             </p>
           </div>
-          <div className="col-span-2 row-span-5 flex flex-col gap-8 border p-2 text-sm">
+          <div className="flex flex-col gap-8 border p-2 text-sm lg:col-span-2 lg:row-span-5">
             <h1 className="section-label flex-none">High Scores</h1>
             {fetchingScores ? (
               <Loading />
@@ -156,18 +168,17 @@ const Tetris = () => {
           <div className="col-span-4 flex flex-col border p-2 text-sm">
             <h1 className="section-label">Controls</h1>
             <div className="flex items-end justify-between gap-2">
-              <div className="flex gap-2">
+              <div className="hidden gap-2 lg:flex">
                 <Button
                   onClick={() => {
                     if (!gameStarted) {
                       startGame();
-                      return;
-                    }
-                    if (gameOver) {
+                    } else if (gameOver) {
                       replay();
-                      return;
+                      setAlert(false);
+                    } else {
+                      setIsPlaying(!isPlaying);
                     }
-                    setIsPlaying(!isPlaying);
                   }}
                   variant="outline"
                 >
@@ -177,10 +188,10 @@ const Tetris = () => {
                     ? "Replay"
                     : isPlaying
                     ? "Pause"
-                    : "Play"}
+                    : "Resume"}
                 </Button>
-                <Button variant="outline" size="icon">
-                  <VolumeX strokeWidth={1} />
+                <Button disabled variant="outline" size="icon">
+                  <Volume2 strokeWidth={1} />
                 </Button>
               </div>
               <ul className="grid grid-cols-2 gap-2 text-xs">
@@ -195,23 +206,62 @@ const Tetris = () => {
               </ul>
             </div>
           </div>
-          <div className="col-span-6 overflow-hidden border p-2">
-            <h1 className="marquee text-9xl font-bold uppercase">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <span className={cn(alert && "animate-blink")} key={index}>
-                  &nbsp;
-                  {gameStarted ? (
-                    message ?? (
-                      <>
-                        Level <span className="text-destructive">{level}</span>
-                      </>
-                    )
-                  ) : (
-                    <>Wanna Play?</>
-                  )}
-                </span>
-              ))}
-            </h1>
+          <div className="col-span-6 flex gap-2">
+            <div className="flex gap-2 lg:hidden">
+              <Button
+                onClick={() => {
+                  if (!gameStarted) {
+                    startGame();
+                  } else if (gameOver) {
+                    replay();
+                    setAlert(false);
+                  } else {
+                    setIsPlaying(!isPlaying);
+                  }
+                }}
+                variant="outline"
+              >
+                {!gameStarted
+                  ? "New Game"
+                  : gameOver
+                  ? "Replay"
+                  : isPlaying
+                  ? "Pause"
+                  : "Resume"}
+              </Button>
+              <Button disabled variant="outline" size="icon">
+                <Volume2 strokeWidth={1} />
+              </Button>
+            </div>
+            <div className="overflow-hidden border p-2">
+              <h1 className="marquee text-2xl font-bold uppercase lg:text-9xl">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <span
+                    className={cn(
+                      alert && !onFire && "animate-blink",
+                      onFire && "animate-on-fire",
+                    )}
+                    key={index}
+                  >
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <span key={i}>
+                        &nbsp;
+                        {gameStarted ? (
+                          message ?? (
+                            <>
+                              Level
+                              <span className="text-destructive">{level}</span>
+                            </>
+                          )
+                        ) : (
+                          <>Wanna Play?</>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                ))}
+              </h1>
+            </div>
           </div>
         </div>
       </main>

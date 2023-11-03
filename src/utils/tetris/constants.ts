@@ -5,6 +5,12 @@ import {
   type ScoreLines,
 } from "./types";
 
+export const highScoresLimit = 10;
+
+export const maxBoardWidth = 400;
+
+export const maxBoardHeight = 800;
+
 export const defaultCellSize = 40;
 
 export const defaultCellCols = 10;
