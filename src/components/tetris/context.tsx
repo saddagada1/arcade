@@ -123,6 +123,8 @@ const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
     setLines(0);
     setLevel(0);
     setMessage(null);
+    setAlert(false);
+    setOnFire(false);
     setGameOver(false);
     setIsPlaying(true);
   };
@@ -135,7 +137,10 @@ const TetrisProvider: React.FC<TetrisProviderProps> = ({ children }) => {
       } else {
         setAlert(true);
       }
-      setFallSpeed(fallSpeed - 50);
+
+      if (fallSpeed > 150) {
+        setFallSpeed(fallSpeed - 50);
+      }
     }
 
     setLevel(update);

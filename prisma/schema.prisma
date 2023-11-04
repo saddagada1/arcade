@@ -55,7 +55,7 @@ model Session {
 
 model User {
     id        String    @id @default(cuid())
-    username  String    @unique @db.VarChar(255)
+    username  String    @unique
     password  String
     accounts  Account[]
     sessions  Session[]

@@ -126,7 +126,7 @@ const Controls: React.FC<ControlsProps> = ({ onPress, onRelease }) => {
         <Button
           onPointerDown={() => onPress && onPress("down")}
           onPointerUp={() => onRelease && onRelease("down")}
-          className="col-start-2"
+          className="col-start-2 select-none"
           variant="outline"
           size="icon"
         >
@@ -785,11 +785,24 @@ const Board: React.FC<{ width: number }> = ({ width }) => {
         style={{
           width: cellSize * cellCols,
           height: cellSize * cellRows,
-          backgroundImage: `linear-gradient(hsl(var(--border)) 1px, transparent 1px), linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px)`,
-          backgroundSize: `${cellSize}px ${cellSize}px`,
+          gridTemplateColumns: `repeat(${cellCols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${cellRows}, minmax(0, 1fr))`,
         }}
-        className="relative grid w-full border-b border-r"
+        className="relative grid w-full border"
       >
+        {Array.from({ length: cellCols * cellRows }).map((_, index) => (
+          <div
+            style={{
+              width: cellSize,
+              height: cellSize,
+            }}
+            key={index}
+            className={cn(
+              index % cellCols !== 0 && "border-l",
+              index >= cellCols && "border-t",
+            )}
+          />
+        ))}
         {askSave && (
           <Save
             onSave={async () => {

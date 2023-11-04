@@ -104,7 +104,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         let user = await prisma.user.findUnique({
-          where: { username: credentials.username },
+          where: { username: credentials.username.toLowerCase() },
         });
 
         if (!user) {
@@ -112,7 +112,7 @@ export const authOptions: NextAuthOptions = {
             const hashedPassword = await argon2.hash(credentials.password);
             user = await prisma.user.create({
               data: {
-                username: credentials.username,
+                username: credentials.username.toLowerCase(),
                 password: hashedPassword,
               },
             });

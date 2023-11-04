@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const SideNavbar = () => {
   return (
-    <nav className="hidden w-[300px] shrink-0 flex-col justify-end border lg:flex">
+    <nav className="mr-2 hidden w-[300px] shrink-0 flex-col justify-end border lg:flex">
       <div className="dots-pattern relative flex aspect-square w-full items-center justify-center border-b">
         <div className="absolute aspect-square w-24 translate-x-3 animate-bounce rounded-full bg-orange-500" />
         <div className="absolute aspect-square w-24 translate-y-8 animate-spin rounded-full bg-red-500" />
@@ -80,7 +80,7 @@ const SideNavbar = () => {
 
 const Navbar: React.FC = () => {
   return (
-    <nav className="flex h-[80px] w-full shrink-0 justify-between gap-2 border p-2 lg:hidden">
+    <nav className="mb-2 flex h-[80px] w-full shrink-0 justify-between gap-2 border p-2 lg:hidden">
       <div className="dots-pattern relative flex aspect-square h-full shrink-0 items-center justify-center overflow-hidden border">
         <div className="absolute aspect-square w-2 translate-x-1 animate-bounce rounded-full bg-orange-500" />
         <div className="absolute aspect-square w-2 translate-y-2 animate-spin rounded-full bg-red-500" />
@@ -174,7 +174,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Head>
       <div
         className={cn(
-          "flex h-screen w-screen flex-col gap-2 p-2 font-sans lg:flex-row",
+          "flex h-screen w-screen flex-col p-2 font-sans lg:flex-row",
           mono.variable,
         )}
       >

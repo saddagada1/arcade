@@ -23,7 +23,7 @@ export const superSpeed = 50;
 
 export const controls = [
   { key: "Arrow Up", action: "Morph" },
-  { key: "Arrow Down", action: "Accelerate" },
+  { key: "Arrow Down", action: "Superspeed" },
   { key: "Arrow Left", action: "Move Left" },
   { key: "Arrow Right", action: "Move Right" },
 ];

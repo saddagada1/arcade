@@ -38,7 +38,6 @@ const Tetris = () => {
     isPlaying,
     level,
     alert,
-    setAlert,
     onFire,
     message,
     startGame,
@@ -52,9 +51,9 @@ const Tetris = () => {
       </Head>
       <main className="flex w-full flex-col gap-2 lg:flex-row">
         <Game />
-        <div className="flex flex-1 flex-col-reverse gap-2 lg:grid lg:grid-cols-6 lg:grid-rows-6">
+        <div className="flex flex-1 flex-col-reverse gap-2 pb-2 lg:grid lg:grid-cols-6 lg:grid-rows-6 lg:pb-0">
           <div className="flex flex-col border p-2 text-sm lg:col-span-4 lg:row-span-4">
-            <h1 className="section-label">Summary</h1>
+            <h1 className="section-label mb-8 lg:mb-8">Summary</h1>
             <h1 className="h1">Tetris</h1>
             <p className="mb-4">
               Tetris is a classic video game that was created by Russian game
@@ -166,7 +165,7 @@ const Tetris = () => {
             )}
           </div>
           <div className="col-span-4 flex flex-col border p-2 text-sm">
-            <h1 className="section-label">Controls</h1>
+            <h1 className="section-label mb-8 lg:mb-0">Controls</h1>
             <div className="flex items-end justify-between gap-2">
               <div className="hidden gap-2 lg:flex">
                 <Button
@@ -175,7 +174,6 @@ const Tetris = () => {
                       startGame();
                     } else if (gameOver) {
                       replay();
-                      setAlert(false);
                     } else {
                       setIsPlaying(!isPlaying);
                     }
@@ -209,12 +207,12 @@ const Tetris = () => {
           <div className="col-span-6 flex gap-2">
             <div className="flex gap-2 lg:hidden">
               <Button
+                className="h-full"
                 onClick={() => {
                   if (!gameStarted) {
                     startGame();
                   } else if (gameOver) {
                     replay();
-                    setAlert(false);
                   } else {
                     setIsPlaying(!isPlaying);
                   }
@@ -229,7 +227,7 @@ const Tetris = () => {
                   ? "Pause"
                   : "Resume"}
               </Button>
-              <Button disabled variant="outline" size="icon">
+              <Button className="h-full" disabled variant="outline" size="icon">
                 <Volume2 strokeWidth={1} />
               </Button>
             </div>
@@ -243,21 +241,17 @@ const Tetris = () => {
                     )}
                     key={index}
                   >
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <span key={i}>
-                        &nbsp;
-                        {gameStarted ? (
-                          message ?? (
-                            <>
-                              Level
-                              <span className="text-destructive">{level}</span>
-                            </>
-                          )
-                        ) : (
-                          <>Wanna Play?</>
-                        )}
-                      </span>
-                    ))}
+                    &nbsp;
+                    {gameStarted ? (
+                      message ?? (
+                        <>
+                          Level
+                          <span className="text-destructive">{level}</span>
+                        </>
+                      )
+                    ) : (
+                      <>Wanna Play?</>
+                    )}
                   </span>
                 ))}
               </h1>
