@@ -6,6 +6,7 @@ import Avatar from "boring-avatars";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import PageTransition from "./pageTransition";
 import Orbs from "./orbs";
+import { useState } from "react";
 
 const SideNavbar = () => {
   return (
@@ -79,15 +80,20 @@ const SideNavbar = () => {
 };
 
 const Navbar: React.FC = () => {
+  const [open, setOpen] = useState(false);
   return (
     <nav className="mb-2 flex h-[80px] w-full shrink-0 justify-between gap-2 border p-2 lg:hidden">
       <Orbs identifier="nav-orb" bounds={5} className="h-full border" />
-      <Sheet>
+      <Sheet open={open} onOpenChange={(o) => setOpen(o)}>
         <SheetTrigger asChild>
           <Button variant="outline">Menu</Button>
         </SheetTrigger>
         <SheetContent side="bottom" className="h-3/4 p-2">
-          <Link href="/" className="text-2xl font-medium">
+          <Link
+            onClick={() => setOpen(false)}
+            href="/"
+            className="text-2xl font-medium"
+          >
             Arcade
           </Link>
           <p className="mt-4 text-sm">
@@ -95,7 +101,12 @@ const Navbar: React.FC = () => {
             or Unreal Engine.
           </p>
           <div className="mt-12 space-y-2">
-            <Button variant="nav" size="nav" asChild>
+            <Button
+              onClick={() => setOpen(false)}
+              variant="nav"
+              size="nav"
+              asChild
+            >
               <Link href="/" className="flex gap-2">
                 <Avatar square name="Library" />
                 <div>
@@ -106,7 +117,12 @@ const Navbar: React.FC = () => {
                 </div>
               </Link>
             </Button>
-            <Button variant="nav" size="nav" asChild>
+            <Button
+              onClick={() => setOpen(false)}
+              variant="nav"
+              size="nav"
+              asChild
+            >
               <Link href="/tetris" className="flex gap-2">
                 <Avatar square name="Tetris" />
                 <div>
