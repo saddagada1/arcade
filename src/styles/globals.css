@@ -124,6 +124,16 @@
   font-style: normal;
 }
 
+* {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
 .marquee {
   width: fit-content;
   white-space: nowrap;

@@ -1,4 +1,4 @@
-import { Volume2 } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import Head from "next/head";
 import { useTetrisContext } from "~/components/tetris/context";
 import Game from "~/components/tetris/game";
@@ -10,6 +10,7 @@ import Loading from "~/components/loading";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
 import NoContent from "~/components/noContent";
+import useAudio from "~/utils/hooks";
 
 const Tetris = () => {
   const { data: session, status: sessionStatus } = useSession();
@@ -43,13 +44,14 @@ const Tetris = () => {
     startGame,
     replay,
   } = useTetrisContext();
+  const { mute, setMute } = useAudio("/media/tetris-theme.mp3", isPlaying);
 
   return (
     <>
       <Head>
         <title>Tetris</title>
       </Head>
-      <main className="flex w-full flex-col gap-2 lg:flex-row">
+      <main className="flex w-full flex-col items-center gap-2 lg:flex-row lg:items-stretch">
         <Game />
         <div className="flex flex-1 flex-col-reverse gap-2 pb-2 lg:grid lg:grid-cols-6 lg:grid-rows-6 lg:pb-0">
           <div className="flex flex-col border p-2 text-sm lg:col-span-4 lg:row-span-4">
@@ -188,8 +190,16 @@ const Tetris = () => {
                     ? "Pause"
                     : "Resume"}
                 </Button>
-                <Button disabled variant="outline" size="icon">
-                  <Volume2 strokeWidth={1} />
+                <Button
+                  onClick={() => setMute(!mute)}
+                  variant="outline"
+                  size="icon"
+                >
+                  {mute ? (
+                    <VolumeX strokeWidth={1} />
+                  ) : (
+                    <Volume2 strokeWidth={1} />
+                  )}
                 </Button>
               </div>
               <ul className="grid grid-cols-2 gap-2 text-xs">
@@ -204,10 +214,10 @@ const Tetris = () => {
               </ul>
             </div>
           </div>
-          <div className="col-span-6 flex gap-2">
+          <div className="col-span-6 grid grid-cols-6 gap-2">
             <div className="flex gap-2 lg:hidden">
               <Button
-                className="h-full"
+                className="h-full flex-1"
                 onClick={() => {
                   if (!gameStarted) {
                     startGame();
@@ -227,12 +237,20 @@ const Tetris = () => {
                   ? "Pause"
                   : "Resume"}
               </Button>
-              <Button className="h-full" disabled variant="outline" size="icon">
-                <Volume2 strokeWidth={1} />
+              <Button
+                onClick={() => setMute(!mute)}
+                variant="outline"
+                className="h-full flex-1"
+              >
+                {mute ? (
+                  <VolumeX strokeWidth={1} />
+                ) : (
+                  <Volume2 strokeWidth={1} />
+                )}
               </Button>
             </div>
-            <div className="overflow-hidden border p-2">
-              <h1 className="marquee text-2xl font-bold uppercase lg:text-9xl">
+            <div className="col-span-5 flex items-center overflow-hidden border p-2 lg:col-span-6">
+              <h1 className="marquee text-2xl font-bold uppercase md:text-9xl">
                 {Array.from({ length: 4 }).map((_, index) => (
                   <span
                     className={cn(

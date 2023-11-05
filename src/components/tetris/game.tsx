@@ -776,6 +776,9 @@ const Board: React.FC<{ width: number }> = ({ width }) => {
       }
     } else {
       setCellSize(defaultCellSize);
+      if (screenHeight > maxBoardHeight * 1.5) {
+        setCellRows(defaultCellRows + 5);
+      }
     }
   }, [cellCols, screenHeight, screenWidth, setCellRows, setCellSize, width]);
 

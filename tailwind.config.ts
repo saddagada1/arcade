@@ -16,6 +16,11 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        lg: {
+          raw: "((min-width: 1536px) and (min-aspect-ratio: 16/10))",
+        },
+      },
       fontFamily: {
         sans: ["Neue Montreal"],
         mono: ["var(--font-mono)"],
