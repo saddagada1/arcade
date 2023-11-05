@@ -15,7 +15,7 @@ export const library: Record<GameName, Game> = {
   pokemon: {
     id: 2,
     name: "Pokemon",
-    engine: "Canvas",
+    engine: "WebGL",
     date: "Coming Soon",
     description:
       "A personal clone/homage incorporating the timeless game loop.",

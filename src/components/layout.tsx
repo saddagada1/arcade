@@ -1,29 +1,29 @@
 import Head from "next/head";
-import { JetBrains_Mono } from "next/font/google";
-import { cn } from "~/utils/helpers";
 import { Github } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import Avatar from "boring-avatars";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import PageTransition from "./pageTransition";
+import Orbs from "./orbs";
 
 const SideNavbar = () => {
   return (
     <nav className="mr-2 hidden w-[300px] shrink-0 flex-col justify-end border lg:flex">
-      <div className="dots-pattern relative flex aspect-square w-full items-center justify-center border-b">
-        <div className="absolute aspect-square w-24 translate-x-3 animate-bounce rounded-full bg-orange-500" />
-        <div className="absolute aspect-square w-24 translate-y-8 animate-spin rounded-full bg-red-500" />
-        <div className="absolute aspect-square w-24 -translate-x-12 animate-ping rounded-full bg-yellow-500" />
-        <div className="absolute aspect-square w-24 -translate-y-8 animate-spin rounded-full bg-purple-500" />
-        <div className="absolute top-0 h-full w-full backdrop-blur-xl" />
-      </div>
+      <Orbs
+        identifier="side-nav-orb"
+        bounds={30}
+        blur="backdrop-blur-2xl"
+        size="w-2/5"
+        className="w-full border-b"
+      />
       <div className="relative flex-1 p-2">
         <Link href="/" className="text-2xl font-medium">
           Arcade
         </Link>
         <p className="mt-4 text-sm">
-          A collection of games created with Javascript, Canvas and Unreal
-          Engine.
+          A growing collection of video games created using JavaScript, WebGL,
+          or Unreal Engine.
         </p>
         <div className="mt-12 space-y-2">
           <Button variant="nav" size="nav" asChild>
@@ -81,13 +81,7 @@ const SideNavbar = () => {
 const Navbar: React.FC = () => {
   return (
     <nav className="mb-2 flex h-[80px] w-full shrink-0 justify-between gap-2 border p-2 lg:hidden">
-      <div className="dots-pattern relative flex aspect-square h-full shrink-0 items-center justify-center overflow-hidden border">
-        <div className="absolute aspect-square w-2 translate-x-1 animate-bounce rounded-full bg-orange-500" />
-        <div className="absolute aspect-square w-2 translate-y-2 animate-spin rounded-full bg-red-500" />
-        <div className="absolute aspect-square w-2 -translate-x-4 animate-ping rounded-full bg-yellow-500" />
-        <div className="absolute aspect-square w-2 -translate-y-2 animate-spin rounded-full bg-purple-500" />
-        <div className="absolute top-0 h-full w-full backdrop-blur-sm" />
-      </div>
+      <Orbs identifier="nav-orb" bounds={5} className="h-full border" />
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline">Menu</Button>
@@ -96,9 +90,9 @@ const Navbar: React.FC = () => {
           <Link href="/" className="text-2xl font-medium">
             Arcade
           </Link>
-          <p className="mt-4 w-3/4 text-sm">
-            A collection of games created with Javascript, Canvas and Unreal
-            Engine.
+          <p className="mt-4 text-sm">
+            A growing collection of video games created using JavaScript, WebGL,
+            or Unreal Engine.
           </p>
           <div className="mt-12 space-y-2">
             <Button variant="nav" size="nav" asChild>
@@ -135,7 +129,7 @@ const Navbar: React.FC = () => {
               </Link>
             </Button>
           </div>
-          <div className="mt-auto">
+          <div className="relative mt-auto">
             <p className="absolute bottom-2 left-2 text-xs">
               2<span className="text-destructive">@</span>23
             </p>
@@ -156,11 +150,6 @@ const Navbar: React.FC = () => {
   );
 };
 
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
-
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -172,15 +161,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <meta name="description" content="Arcade" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div
-        className={cn(
-          "flex h-screen w-screen flex-col p-2 font-sans lg:flex-row",
-          mono.variable,
-        )}
-      >
+      <div className="flex h-screen w-screen flex-col p-2 font-sans lg:flex-row">
         <SideNavbar />
         <Navbar />
         {children}
+        <PageTransition />
       </div>
     </>
   );
