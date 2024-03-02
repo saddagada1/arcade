@@ -59,7 +59,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ score, lines, shape }) => {
           )}
         </div>
       </div>
-      <div className="hidden flex-1 gap-2 lg:flex">
+      <div className="hidden flex-1 gap-2 lg:flex lg:flex-col-reverse">
         <div className="flex flex-1 flex-col items-end justify-end border p-2">
           <h1 className="section-label w-full">Score</h1>
           <p className="text-5xl text-destructive">{score}</p>
